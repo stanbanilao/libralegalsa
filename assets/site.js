@@ -1,3 +1,4 @@
+(function(){const head=document.head;if(head&&!document.querySelector('link[data-libra-brand]')){const brand=document.createElement('link');brand.rel='stylesheet';brand.href='assets/brand.css';brand.dataset.libraBrand='true';head.appendChild(brand);const icon=document.createElement('link');icon.rel='icon';icon.href='/favicon.ico';icon.sizes='any';head.appendChild(icon);let theme=document.querySelector('meta[name="theme-color"]');if(!theme){theme=document.createElement('meta');theme.name='theme-color';head.appendChild(theme)}theme.content='#071827'}})();
 (function () {
   const menuButton = document.querySelector('.menu-button');
   const nav = document.querySelector('.nav-links');
