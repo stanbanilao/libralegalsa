@@ -100,12 +100,32 @@
         'Source: libralegalsa.co.za application page'
       ].join('\n');
       const url = `https://wa.me/${CONTACT.whatsappHref}?text=${encodeURIComponent(applicationMessage)}`;
-      window.open(url, '_blank', 'noopener');
       const status = document.querySelector('#application-status');
-      if (status) {
-        status.innerHTML = `<strong>Your application summary is ready.</strong> WhatsApp should open with your details. Review the message and tap Send to submit it to Libra Legal SA. If WhatsApp did not open, message <a href="${websiteWhatsAppUrl}" target="_blank" rel="noopener">${CONTACT.whatsappDisplay}</a>.`;
-        status.hidden = false;
-      }
+      const btn = leadForm.querySelector('button[type="submit"], button:not([type])');
+      if (data.get('_honey')) return;
+      const payload = { _subject: `New Libra Legal SA application: ${data.get('firstName') || ''} ${data.get('surname') || ''}`.trim(), _template: 'table', _captcha: 'false' };
+      [['First name','firstName'],['Surname','surname'],['Mobile','phone'],['Email','email'],['Province','province'],['Debt review status','status'],['Court / Tribunal order','order'],['All relevant debts paid','paid'],['Home loan status','homeLoan'],['Debt counsellor','counsellor'],['Year placed under debt review','reviewYear'],['Notes','notes']].forEach(([label, key]) => { payload[label] = data.get(key) || 'Not provided'; });
+      payload['Consent to contact'] = 'Yes';
+      if (data.get('email')) payload._replyto = data.get('email');
+      const label = btn ? btn.innerHTML : '';
+      if (btn) { btn.disabled = true; btn.textContent = 'Sending…'; }
+      fetch('https://formsubmit.co/ajax/Moe@libralegalsa.co.za', { method: 'POST', headers: { 'Content-Type': 'application/json', Accept: 'application/json' }, body: JSON.stringify(payload) })
+        .then((r) => { if (!r.ok) throw new Error('send failed'); return r.json(); })
+        .then(() => {
+          leadForm.querySelectorAll(':scope > :not(#application-status)').forEach((el) => { el.hidden = true; el.style.setProperty('display', 'none', 'important'); });
+          if (status) {
+            status.innerHTML = `<strong>Thank you, we've received your application.</strong> A Libra Legal SA consultant will be in touch shortly. Prefer to chat now? <a class="button" href="${url}" target="_blank" rel="noopener" style="margin-top:14px;display:inline-flex">Chat on WhatsApp now</a>`;
+            status.hidden = false;
+            status.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          }
+        })
+        .catch(() => {
+          if (btn) { btn.disabled = false; btn.innerHTML = label; }
+          if (status) {
+            status.innerHTML = `<strong>Something went wrong sending your application.</strong> Please try again, or <a href="${url}" target="_blank" rel="noopener">send it via WhatsApp</a>.`;
+            status.hidden = false;
+          }
+        });
     });
   }
 
